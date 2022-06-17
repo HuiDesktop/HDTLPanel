@@ -17,7 +17,7 @@
         <Button Content="{Binding Path=IsRunning, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=启动程序/结束程序}" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="90" Click="SwitchSubprogramRunningStatus" IsEnabled="{Binding Path=IsBusyClosing, Converter={StaticResource reverseBooleanConverter}}"/>
         <Grid x:Name="ConfigZoneGrid" Height="296" Margin="0,64,0,0" VerticalAlignment="Top">
             <Grid Height="40" VerticalAlignment="Top">
-                <Button Content="保存配置" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="90" d:DataContext="{d:DesignInstance {x:Type local:TempConfigDataContext}}" IsEnabled="{Binding Changed}"/>
+                <Button Content="保存配置" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="90" d:DataContext="{d:DesignInstance {x:Type local:TempConfigDataContext}}" IsEnabled="{Binding Changed}" Click="SaveConfig"/>
                 <Button Content="放弃更改" HorizontalAlignment="Left" Margin="110,10,0,0" VerticalAlignment="Top" Width="90" d:DataContext="{d:DesignInstance {x:Type local:TempConfigDataContext}}" IsEnabled="{Binding Changed}"/>
             </Grid>
             <Grid Height="50" VerticalAlignment="Top" d:DataContext="{d:DesignInstance local:TempConfigDataContext}" Margin="0,44,0,0">

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,8 +26,9 @@ namespace HDTLPanel
     /// </summary>
     public partial class MainWindow : Window
     {
+        const string settingsPath = "settings.json";
         readonly MainWindowDataContext context = new();
-        readonly TempConfigDataContext tempConfigData = new("settings.json");
+        readonly TempConfigDataContext tempConfigData = new(settingsPath);
 
         ProcessManager? manager;
 
@@ -93,11 +95,18 @@ namespace HDTLPanel
                 e.Handled = true;
             }
         }
+
+        private void SaveConfig(object sender, RoutedEventArgs e)
+        {
+            File.WriteAllText(settingsPath, JsonSerializer.Serialize(new TempConfigFile(int.Parse(tempConfigData.Fps))));
+            tempConfigData.Changed = false;
+        }
     }
+
+    record class TempConfigFile(int Fps);
 
     class TempConfigDataContext : INotifyPropertyChanged
     {
-        record class TempConfigFile(int Fps);
         private string fps = "0";
         private bool changed = false;
 
