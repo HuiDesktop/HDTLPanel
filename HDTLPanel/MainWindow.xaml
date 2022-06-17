@@ -5,8 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HDTLPanel"
         mc:Ignorable="d"
-        Title="HuiDesktop Light" Height="450" Width="800">
+        d:DataContext="{d:DesignInstance local:MainWindowDataContext, IsDesignTimeCreatable=True}"
+        Title="HuiDesktop Light" Height="140" Width="420" Closed="Window_Closed">
+    <Window.Resources>
+        <local:BoolToStringValueConverter x:Key="runningStatusConverter"/>
+        <local:ReverseBooleanValueConverter x:Key="reverseBooleanConverter"/>
+    </Window.Resources>
     <Grid>
-
+        <Label Content="当前主程序状态：" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Label Content="{Binding Path=IsRunning, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=未运行/正在运行}" HorizontalAlignment="Left" Margin="121,10,0,0" VerticalAlignment="Top"/>
+        <Button Content="{Binding Path=IsRunning, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=启动程序/结束程序}" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="90" Click="SwitchSubprogramRunningStatus" IsEnabled="{Binding Path=IsBusyClosing, Converter={StaticResource reverseBooleanConverter}}"/>
     </Grid>
 </Window>
