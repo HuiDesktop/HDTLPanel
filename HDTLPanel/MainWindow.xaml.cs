@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -25,12 +26,15 @@ namespace HDTLPanel
     public partial class MainWindow : Window
     {
         readonly MainWindowDataContext context = new();
+        readonly TempConfigDataContext tempConfigData = new("settings.json");
+
         ProcessManager? manager;
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = context;
+            ConfigZoneGrid.DataContext = tempConfigData;
         }
 
         async private void SwitchSubprogramRunningStatus(object sender, RoutedEventArgs e)
@@ -72,6 +76,51 @@ namespace HDTLPanel
                     manager.ForceCloseWindow();
                 }
             }
+        }
+
+        private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (!int.TryParse(e.Text, out _))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space)
+            {
+                e.Handled = true;
+            }
+        }
+    }
+
+    class TempConfigDataContext : INotifyPropertyChanged
+    {
+        record class TempConfigFile(int Fps);
+        private string fps = "0";
+        private bool changed = false;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public TempConfigDataContext(string path)
+        {
+            if (File.Exists(path))
+            {
+                var r = System.Text.Json.JsonSerializer.Deserialize<TempConfigFile>(File.ReadAllText(path));
+                if (r is not null)
+                {
+                    fps = r.Fps.ToString();
+                }
+            }
+        }
+
+        public string Fps { get => fps; set { Changed = true; fps=value; } }
+        public bool Changed { get => changed; set { changed=value; OnPropertyChanged(); } }
+
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 
