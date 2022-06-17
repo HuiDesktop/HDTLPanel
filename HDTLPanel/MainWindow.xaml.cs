@@ -28,7 +28,7 @@ namespace HDTLPanel
     {
         const string settingsPath = "settings.json";
         readonly MainWindowDataContext context = new();
-        readonly TempConfigDataContext tempConfigData = new(settingsPath);
+        TempConfigDataContext tempConfigData = new(settingsPath);
 
         ProcessManager? manager;
 
@@ -100,6 +100,12 @@ namespace HDTLPanel
         {
             File.WriteAllText(settingsPath, JsonSerializer.Serialize(new TempConfigFile(int.Parse(tempConfigData.Fps))));
             tempConfigData.Changed = false;
+        }
+
+        private void DiscardConfigChange(object sender, RoutedEventArgs e)
+        {
+            tempConfigData = new(settingsPath);
+            ConfigZoneGrid.DataContext = tempConfigData;
         }
     }
 
