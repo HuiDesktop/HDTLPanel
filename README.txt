@@ -1,0 +1,1 @@
+Build HuIPC and copy huMessageQueue.dll to where you put your exe!
