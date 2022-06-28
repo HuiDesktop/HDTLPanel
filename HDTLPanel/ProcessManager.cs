@@ -21,8 +21,8 @@ namespace HDTLPanel
 
         public ProcessManager(string exeName, string workingDirectory, string arguments, Action? onReceiveIpcMessage)
         {
-            txIpc = ManagedIpc.CreateInstance(128);
-            rxIpc = ManagedIpc.CreateInstance(128);
+            txIpc = ManagedIpc.CreateInstance(16 * 1024);
+            rxIpc = ManagedIpc.CreateInstance(16 * 1024);
             ProcessStartInfo processStartInfo = new(exeName, arguments + " " + txIpc.GetName() + " " + rxIpc.GetName())
             {
                 WorkingDirectory = workingDirectory,
