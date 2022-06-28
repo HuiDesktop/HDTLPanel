@@ -59,7 +59,7 @@ namespace HDTLPanel
             else
             {
                 context.IsRunning = true;
-                manager = new ProcessManager("app/luajit.exe", System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"), "main.lua");
+                manager = new ProcessManager("app/luajit.exe", System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"), "main.lua", () => Dispatcher.Invoke(ReadIpc));
                 manager.Exited += (_, _) =>
                 {
                     System.Diagnostics.Debug.WriteLine(manager.process.StandardError.ReadToEnd());
@@ -91,6 +91,7 @@ namespace HDTLPanel
             {
                 (i as ISaveableControl)?.Save(w);
             }
+            w.Write(0);
             context.IsChanged = false;
         }
 
@@ -110,33 +111,43 @@ namespace HDTLPanel
             }
         }
 
-        private void ReadIpc(object sender, RoutedEventArgs e)
+        private void ReadIpc()
         {
             var reader = manager?.rxIpc.GetReader();
-            int index = 0;
             if (reader is not null)
             {
                 while (reader.Next())
                 {
-                    if (reader.ReadInt() == 0)
+                    switch (reader.ReadInt())
                     {
-                        MainStackPanel.Children.Clear();
-                        context.IsChanged = false;
-                        index = 0;
-                    }
-                    else
-                    {
-                        index += 1;
-                        SingleLineTextControl c = new(index);
-                        c.PromptText = reader.ReadString();
-                        c.HintText = reader.ReadString();
-                        if (reader.ReadInt() == 1)
-                        {
-                            c.Type = SingleLineTextControl.SingleLineTextType.Integer;
-                            c.InputContent = reader.ReadInt().ToString();
-                        }
-                        c.PropertyChanged += (_, _) => context.IsChanged = true;
-                        MainStackPanel.Children.Add(c);
+                        case 0:
+                            MainStackPanel.Children.Clear();
+                            context.IsChanged = false;
+                            break;
+                        case 1:
+                            {
+                                SingleLineTextControl c = new(MainStackPanel.Children.Count + 1);
+                                c.PromptText = reader.ReadString();
+                                c.HintText = reader.ReadString();
+                                if (reader.ReadInt() == 1)
+                                {
+                                    c.Type = SingleLineTextControl.SingleLineTextType.Integer;
+                                    c.InputContent = reader.ReadInt().ToString();
+                                }
+                                c.PropertyChanged += (_, _) => context.IsChanged = true;
+                                MainStackPanel.Children.Add(c);
+                            }
+                            break;
+                        case 2:
+                            {
+                                BoolControl c = new(MainStackPanel.Children.Count + 1);
+                                c.PromptText = reader.ReadString();
+                                c.HintText = reader.ReadString();
+                                c.Choice = reader.ReadInt() != 0;
+                                c.PropertyChanged += (_, _) => context.IsChanged = true;
+                                MainStackPanel.Children.Add(c);
+                            }
+                            break;
                     }
                 }
             }
