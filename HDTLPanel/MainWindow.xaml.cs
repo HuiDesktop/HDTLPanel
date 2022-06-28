@@ -1,23 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace HDTLPanel
 {
@@ -28,15 +17,23 @@ namespace HDTLPanel
     {
         const string settingsPath = "settings.json";
         readonly MainWindowDataContext context = new();
-        TempConfigDataContext tempConfigData = new(settingsPath);
-
         ProcessManager? manager;
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = context;
-            ConfigZoneGrid.DataContext = tempConfigData;
+
+            foreach (var i in MainStackPanel.Children)
+            {
+                if (i is INotifyPropertyChanged n)
+                {
+                    n.PropertyChanged += (_, _) =>
+                    {
+                        context.IsChanged = true;
+                    };
+                }
+            }
         }
 
         async private void SwitchSubprogramRunningStatus(object sender, RoutedEventArgs e)
@@ -46,12 +43,15 @@ namespace HDTLPanel
                 if (manager is not null)
                 {
                     context.IsBusyClosing = true;
+                    context.IsChanged = false;
+                    MainStackPanel.Children.Clear();
                     manager.TryCloseWindow();
                     await Task.Delay(1000);
                     if (context.IsRunning)
                     {
                         manager.ForceCloseWindow();
                     }
+                    manager.Dispose();
                     manager = null;
                     context.IsBusyClosing = false;
                 }
@@ -62,6 +62,7 @@ namespace HDTLPanel
                 manager = new ProcessManager("app/luajit.exe", System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"), "main.lua");
                 manager.Exited += (_, _) =>
                 {
+                    System.Diagnostics.Debug.WriteLine(manager.process.StandardError.ReadToEnd());
                     context.IsRunning = false;
                 };
             }
@@ -77,65 +78,68 @@ namespace HDTLPanel
                 {
                     manager.ForceCloseWindow();
                 }
-            }
-        }
-
-        private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-        {
-            if (!int.TryParse(e.Text, out _))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Space)
-            {
-                e.Handled = true;
+                manager.Dispose();
             }
         }
 
         private void SaveConfig(object sender, RoutedEventArgs e)
         {
-            File.WriteAllText(settingsPath, JsonSerializer.Serialize(new TempConfigFile(int.Parse(tempConfigData.Fps))));
-            tempConfigData.Changed = false;
+            if (manager is null) throw new NullReferenceException();
+            using var w = manager.txIpc.BeginWrite();
+            w.Write(2);
+            foreach (var i in MainStackPanel.Children)
+            {
+                (i as ISaveableControl)?.Save(w);
+            }
+            context.IsChanged = false;
         }
 
         private void DiscardConfigChange(object sender, RoutedEventArgs e)
         {
-            tempConfigData = new(settingsPath);
-            ConfigZoneGrid.DataContext = tempConfigData;
+            if (manager is null) throw new NullReferenceException();
+            using var w = manager.txIpc.BeginWrite();
+            w.Write(3);
         }
-    }
 
-    record class TempConfigFile(int Fps);
-
-    class TempConfigDataContext : INotifyPropertyChanged
-    {
-        private string fps = "0";
-        private bool changed = false;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public TempConfigDataContext(string path)
+        private void FlipModel(object sender, RoutedEventArgs e)
         {
-            if (File.Exists(path))
+            if (manager is not null)
             {
-                var r = System.Text.Json.JsonSerializer.Deserialize<TempConfigFile>(File.ReadAllText(path));
-                if (r is not null)
-                {
-                    fps = r.Fps.ToString();
-                }
+                using var writer = manager.txIpc.BeginWrite();
+                writer.Write(1);
             }
         }
 
-        public string Fps { get => fps; set { Changed = true; fps=value; } }
-        public bool Changed { get => changed; set { changed=value; OnPropertyChanged(); } }
-
-        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+        private void ReadIpc(object sender, RoutedEventArgs e)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            var reader = manager?.rxIpc.GetReader();
+            int index = 0;
+            if (reader is not null)
+            {
+                while (reader.Next())
+                {
+                    if (reader.ReadInt() == 0)
+                    {
+                        MainStackPanel.Children.Clear();
+                        context.IsChanged = false;
+                        index = 0;
+                    }
+                    else
+                    {
+                        index += 1;
+                        SingleLineTextControl c = new(index);
+                        c.PromptText = reader.ReadString();
+                        c.HintText = reader.ReadString();
+                        if (reader.ReadInt() == 1)
+                        {
+                            c.Type = SingleLineTextControl.SingleLineTextType.Integer;
+                            c.InputContent = reader.ReadInt().ToString();
+                        }
+                        c.PropertyChanged += (_, _) => context.IsChanged = true;
+                        MainStackPanel.Children.Add(c);
+                    }
+                }
+            }
         }
     }
 
@@ -143,6 +147,7 @@ namespace HDTLPanel
     {
         private bool isRunning = false;
         private bool isBusyClosing = false;
+        private bool isChanged = false;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -162,6 +167,16 @@ namespace HDTLPanel
             set
             {
                 isBusyClosing = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsChanged
+        {
+            get => isChanged;
+            set
+            {
+                isChanged = value;
                 OnPropertyChanged();
             }
         }

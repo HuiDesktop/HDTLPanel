@@ -15,16 +15,20 @@
         <Label Content="当前主程序状态：" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <Label Content="{Binding Path=IsRunning, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=未运行/正在运行}" HorizontalAlignment="Left" Margin="121,10,0,0" VerticalAlignment="Top"/>
         <Button Content="{Binding Path=IsRunning, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=启动程序/结束程序}" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="90" Click="SwitchSubprogramRunningStatus" IsEnabled="{Binding Path=IsBusyClosing, Converter={StaticResource reverseBooleanConverter}}"/>
-        <Grid x:Name="ConfigZoneGrid" Height="296" Margin="0,64,0,0" VerticalAlignment="Top">
-            <Grid Height="40" VerticalAlignment="Top">
-                <Button Content="保存配置" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="90" d:DataContext="{d:DesignInstance {x:Type local:TempConfigDataContext}}" IsEnabled="{Binding Changed}" Click="SaveConfig"/>
-                <Button Content="放弃更改" HorizontalAlignment="Left" Margin="110,10,0,0" VerticalAlignment="Top" Width="90" d:DataContext="{d:DesignInstance {x:Type local:TempConfigDataContext}}" IsEnabled="{Binding Changed}" Click="DiscardConfigChange"/>
+        <Button Content="翻转模型" HorizontalAlignment="Left" Margin="110,40,0,0" VerticalAlignment="Top" Width="90" Click="FlipModel" IsEnabled="{Binding Path=IsRunning}"/>
+        <Button Content="读IPC" HorizontalAlignment="Left" Margin="205,40,0,0" VerticalAlignment="Top" Width="90" IsEnabled="{Binding Path=IsRunning}" Click="ReadIpc"/>
+        <Grid x:Name="ConfigZoneGrid" Margin="0,64,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid Height="40" VerticalAlignment="Center">
+                <Button Content="保存配置" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="90" IsEnabled="{Binding IsChanged}" Click="SaveConfig"/>
+                <Button Content="放弃更改" HorizontalAlignment="Left" Margin="110,10,0,0" VerticalAlignment="Top" Width="90" IsEnabled="{Binding IsChanged}" Click="DiscardConfigChange"/>
             </Grid>
-            <Grid Height="50" VerticalAlignment="Top" d:DataContext="{d:DesignInstance local:TempConfigDataContext}" Margin="0,44,0,0">
-                <Label Content="帧率限制：" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"/>
-                <TextBox HorizontalAlignment="Left" Margin="85,4,0,0" TextWrapping="Wrap" Text="{Binding Path=Fps, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120" InputMethod.IsInputMethodEnabled="False" PreviewTextInput="TextBox_PreviewTextInput" PreviewKeyDown="TextBox_PreviewKeyDown"/>
-                <Label Content="帧率小于1表示使用垂直同步且不限制帧率。默认为0。" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" Foreground="#FF555555"/>
-            </Grid>
+            <ScrollViewer Margin="0,1,0,0" Grid.Row="1">
+                <StackPanel x:Name="MainStackPanel"/>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>
