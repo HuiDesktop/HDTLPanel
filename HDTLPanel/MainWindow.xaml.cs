@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace HDTLPanel
@@ -18,22 +19,24 @@ namespace HDTLPanel
         const string settingsPath = "settings.json";
         readonly MainWindowDataContext context = new();
         ProcessManager? manager;
+        NotifyIcon notifyIcon = new();
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = context;
-
-            foreach (var i in MainStackPanel.Children)
+            notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
+            notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler((o, e) =>
             {
-                if (i is INotifyPropertyChanged n)
+                if (e.Button == MouseButtons.Left)
                 {
-                    n.PropertyChanged += (_, _) =>
-                    {
-                        context.IsChanged = true;
-                    };
+                    Visibility = System.Windows.Visibility.Visible;
+                    ShowInTaskbar = true;
+                    notifyIcon.Visible = false;
+                    WindowState = WindowState.Normal;
+                    Activate();
                 }
-            }
+            });
         }
 
         async private void SwitchSubprogramRunningStatus(object sender, RoutedEventArgs e)
@@ -150,6 +153,16 @@ namespace HDTLPanel
                             break;
                     }
                 }
+            }
+        }
+
+        private void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                ShowInTaskbar = false;
+                notifyIcon.Visible = true;
+                notifyIcon.ShowBalloonTip(1000, "HuiDesktop Light", "双击还原喵", ToolTipIcon.Info);
             }
         }
     }

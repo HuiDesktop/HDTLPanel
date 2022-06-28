@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:HDTLPanel"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance local:MainWindowDataContext, IsDesignTimeCreatable=True}"
-        Title="HuiDesktop Light" Height="375" Width="420" Closed="Window_Closed">
+        Title="HuiDesktop Light" Height="375" Width="420" Closed="Window_Closed" StateChanged="Window_StateChanged">
     <Window.Resources>
         <local:BoolToStringValueConverter x:Key="runningStatusConverter"/>
         <local:ReverseBooleanValueConverter x:Key="reverseBooleanConverter"/>
