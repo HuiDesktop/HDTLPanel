@@ -62,6 +62,13 @@ namespace HDTLPanel
             this.index=index;
         }
 
+        public SingleLineTextControl()
+        {
+            InitializeComponent();
+            DataContext = this;
+            this.index=0;
+        }
+
         private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             if (type == SingleLineTextType.Integer && !int.TryParse(e.Text, out _))
