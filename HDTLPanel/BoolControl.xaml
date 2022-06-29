@@ -9,5 +9,6 @@
     <Grid Height="50" VerticalAlignment="Top" d:DataContext="{d:DesignInstance {x:Type local:BoolControl}, IsDesignTimeCreatable=True}" Margin="0">
         <CheckBox Content="{Binding Path=PromptText}" Margin="14,6,10,0" VerticalAlignment="Top" IsChecked="{Binding Path=Choice}"/>
         <Label x:Name="HintTextBox" Content="{Binding Path=HintText}" Margin="10,25,10,0" VerticalAlignment="Top" Foreground="#FF555555"/>
+        <Border BorderBrush="DimGray" BorderThickness="0, 1, 0, 0"/>
     </Grid>
 </UserControl>

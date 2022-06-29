@@ -15,5 +15,6 @@
         <TextBox Margin="0,4,10,0" TextWrapping="Wrap" Text="{Binding Path=InputContent, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top"  InputMethod.IsInputMethodEnabled="{Binding Path=EnableIME, Mode=OneWay}" PreviewTextInput="TextBox_PreviewTextInput" PreviewKeyDown="TextBox_PreviewKeyDown" Grid.Column="1"/>
         <!--<TextBox HorizontalAlignment="Left" Margin="85,4,0,0" TextWrapping="Wrap" Text="{Binding Fps, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120" InputMethod.IsInputMethodEnabled="False"/>-->
         <Label x:Name="HintTextBox" Content="{Binding Path=HintText}" Margin="10,25,10,0" VerticalAlignment="Top" Foreground="#FF555555" Grid.ColumnSpan="2"/>
+        <Border BorderBrush="DimGray" BorderThickness="0, 1, 0, 0" Grid.ColumnSpan="2"/>
     </Grid>
 </UserControl>

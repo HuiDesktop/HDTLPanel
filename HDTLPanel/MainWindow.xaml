@@ -21,7 +21,7 @@
                 <RowDefinition Height="40"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid Height="40" VerticalAlignment="Center">
+            <Grid Height="40" VerticalAlignment="Center" Background="LightGray">
                 <Button Content="保存配置" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="90" IsEnabled="{Binding IsChanged}" Click="SaveConfig"/>
                 <Button Content="放弃更改" HorizontalAlignment="Left" Margin="110,10,0,0" VerticalAlignment="Top" Width="90" IsEnabled="{Binding IsChanged}" Click="DiscardConfigChange"/>
             </Grid>
