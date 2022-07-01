@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,9 +19,15 @@ namespace HDTLPanel
         public Task updateTask;
         public event Action? OnReceiveIpcMessage;
         private bool disposedValue;
+        private StreamWriter stdoutWriter;
+        private StreamWriter stderrWriter;
 
         public ProcessManager(string exeName, string workingDirectory, string arguments, Action? onReceiveIpcMessage)
         {
+            const string logPath = "log";
+            Directory.CreateDirectory(logPath);
+            stdoutWriter = new StreamWriter(Path.Join(logPath, "stdout.log"));
+            stderrWriter = new StreamWriter(Path.Join(logPath, "stderr.log"));
             txIpc = ManagedIpc.CreateInstance(16 * 1024);
             rxIpc = ManagedIpc.CreateInstance(16 * 1024);
             ProcessStartInfo processStartInfo = new(exeName, arguments + " " + txIpc.GetName() + " " + rxIpc.GetName())
@@ -33,6 +40,7 @@ namespace HDTLPanel
                 UseShellExecute = false
             };
             process = Process.Start(processStartInfo) ?? throw new Exception("Failed to start process");
+            process.OutputDataReceived += Process_OutputDataReceived;
             process.ErrorDataReceived += Process_ErrorDataReceived;
             process.Exited += Process_Exited;
             process.EnableRaisingEvents = true;
@@ -61,9 +69,14 @@ namespace HDTLPanel
             });
         }
 
+        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            stdoutWriter.WriteLine(e.Data);
+        }
+
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            Debug.WriteLine(e.Data);
+            stderrWriter.WriteLine(e.Data);
         }
 
         public void TryCloseWindow()
@@ -94,6 +107,8 @@ namespace HDTLPanel
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并重写终结器
+                stdoutWriter.Close();
+                stderrWriter.Close();
                 // TODO: 将大型字段设置为 null
                 disposedValue=true;
             }
