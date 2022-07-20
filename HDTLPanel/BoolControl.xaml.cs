@@ -30,18 +30,20 @@ namespace HDTLPanel
 
         public string PromptText { get => promptText; set { promptText=value; OnPropertyChanged(); } }
         public string HintText { get => hintText; set { hintText=value; OnPropertyChanged(); } }
-        public bool Choice { get => choice; set { choice = value; OnPropertyChanged(); } }
+        public bool Choice { get => choice; set { choice = value; OnPropertyChanged(); changed = true; } }
 
         protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+        public bool changed = false;
 
         public BoolControl(int index)
         {
             InitializeComponent();
             DataContext = this;
             this.index=index;
+            this.changed = false;
         }
 
         public BoolControl()
@@ -52,8 +54,12 @@ namespace HDTLPanel
 
         public void Save(ManagedIpc.IpcWriter writer)
         {
-            writer.Write(index);
-            writer.Write(choice ? 1 : 0);
+            if (changed)
+            {
+                writer.Write(index);
+                writer.Write(choice ? 1 : 0);
+                changed = false;
+            }
         }
     }
 }

@@ -62,7 +62,7 @@ namespace HDTLPanel
             else
             {
                 context.IsRunning = true;
-                manager = new ProcessManager("app/luajit.exe", System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"), "main.lua", () => Dispatcher.Invoke(ReadIpc));
+                manager = new ProcessManager("app/luajit.exe", System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"), "pet.lua", () => Dispatcher.Invoke(ReadIpc));
                 manager.Exited += (_, _) =>
                 {
                     System.Diagnostics.Debug.WriteLine(manager?.process.StandardError.ReadToEnd());
@@ -140,6 +140,7 @@ namespace HDTLPanel
                                     c.InputContent = reader.ReadInt().ToString();
                                 }
                                 c.PropertyChanged += (_, _) => context.IsChanged = true;
+                                c.changed = false;
                                 MainStackPanel.Children.Add(c);
                             }
                             break;
@@ -150,6 +151,13 @@ namespace HDTLPanel
                                 c.HintText = reader.ReadString();
                                 c.Choice = reader.ReadInt() != 0;
                                 c.PropertyChanged += (_, _) => context.IsChanged = true;
+                                c.changed = false;
+                                MainStackPanel.Children.Add(c);
+                            }
+                            break;
+                        case 3:
+                            {
+                                ReadonlyTextControl c = new(reader.ReadString());
                                 MainStackPanel.Children.Add(c);
                             }
                             break;

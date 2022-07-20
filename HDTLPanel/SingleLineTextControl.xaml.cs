@@ -37,7 +37,8 @@ namespace HDTLPanel
 
         public string PromptText { get => promptText; set { promptText=value; OnPropertyChanged(); } }
         public string HintText { get => hintText; set { hintText=value; OnPropertyChanged(); } }
-        public string InputContent { get => inputContent; set { inputContent = value; OnPropertyChanged(); } }
+        public string InputContent { get => inputContent; set { inputContent = value; OnPropertyChanged(); changed = true; } }
+        public bool changed = false;
 
         public SingleLineTextType Type
         {
@@ -60,6 +61,7 @@ namespace HDTLPanel
             InitializeComponent();
             DataContext = this;
             this.index=index;
+            changed = false;
         }
 
         public SingleLineTextControl()
@@ -87,14 +89,18 @@ namespace HDTLPanel
 
         public void Save(ManagedIpc.IpcWriter writer)
         {
-            writer.Write(index);
-            if (type == SingleLineTextType.Integer)
+            if (changed)
             {
-                writer.Write(int.Parse(InputContent));
-            }
-            else
-            {
-                writer.Write(InputContent);
+                writer.Write(index);
+                if (type == SingleLineTextType.Integer)
+                {
+                    writer.Write(int.Parse(InputContent));
+                }
+                else
+                {
+                    writer.Write(InputContent);
+                }
+                changed = false;
             }
         }
     }
