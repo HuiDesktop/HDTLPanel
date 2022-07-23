@@ -17,9 +17,10 @@ namespace HDTLPanel
     public partial class MainWindow : Window
     {
         const string settingsPath = "settings.json";
+
         readonly MainWindowDataContext context = new();
+        readonly NotifyIcon notifyIcon = new();
         ProcessManager? manager;
-        NotifyIcon notifyIcon = new();
 
         public MainWindow()
         {
@@ -37,9 +38,12 @@ namespace HDTLPanel
                     Activate();
                 }
             });
+            SwitchSubprogramRunningStatus(null, new());
+            WindowState = WindowState.Minimized;
+            Window_StateChanged(null, new());
         }
 
-        async private void SwitchSubprogramRunningStatus(object sender, RoutedEventArgs e)
+        async private void SwitchSubprogramRunningStatus(object? sender, RoutedEventArgs e)
         {
             if (context.IsRunning)
             {
@@ -68,7 +72,13 @@ namespace HDTLPanel
                     System.Diagnostics.Debug.WriteLine(manager?.process.StandardError.ReadToEnd());
                     context.IsRunning = false;
                     context.IsChanged = false;
-                    Dispatcher.Invoke(() => MainStackPanel.Children.Clear());
+                    Dispatcher.Invoke(() => {
+                        MainStackPanel.Children.Clear();
+                        if (WindowState == WindowState.Minimized)
+                        {
+                            WindowState = WindowState.Normal;
+                        }
+                    });
                 };
             }
         }
@@ -166,7 +176,7 @@ namespace HDTLPanel
             }
         }
 
-        private void Window_StateChanged(object sender, EventArgs e)
+        private void Window_StateChanged(object? sender, EventArgs e)
         {
             if (WindowState == WindowState.Minimized)
             {
