@@ -21,6 +21,8 @@ namespace HDTLPanel
         [DllImport("huMessageQueue.dll")]
         extern public static void hiMQ_begin(IntPtr inst);
         [DllImport("huMessageQueue.dll")]
+        extern public static void hiMQ_ensure(IntPtr inst, uint size);
+        [DllImport("huMessageQueue.dll")]
         extern public static void hiMQ_end(IntPtr inst, uint size, uint setEvent);
     }
 
@@ -75,7 +77,6 @@ namespace HDTLPanel
         public class IpcWriter : IDisposable
         {
             readonly ManagedIpc m;
-            uint wrote = 0;
 
             public IpcWriter(ManagedIpc m)
             {
@@ -85,21 +86,23 @@ namespace HDTLPanel
 
             public void Write(int value)
             {
-                Marshal.WriteInt32(Marshal.ReadIntPtr(m.ptr + 24) + (int)wrote, value);
-                wrote += 4;
+                Ipc.hiMQ_ensure(m.ptr, 4);
+                Marshal.WriteInt32(Marshal.ReadIntPtr(m.ptr + 24), value);
+                Marshal.WriteIntPtr(m.ptr + 24, Marshal.ReadIntPtr(m.ptr + 24) + 4);
             }
 
             public void Write(string value)
             {
                 var b = System.Text.Encoding.UTF8.GetBytes(value);
+                Ipc.hiMQ_ensure(m.ptr, 4 + (uint)b.Length);
                 Write(b.Length);
-                Marshal.Copy(b, 0, Marshal.ReadIntPtr(m.ptr + 24) + (int)wrote, b.Length);
-                wrote += (uint)b.Length;
+                Marshal.Copy(b, 0, Marshal.ReadIntPtr(m.ptr + 24), b.Length);
+                Marshal.WriteIntPtr(m.ptr + 24, Marshal.ReadIntPtr(m.ptr + 24) + b.Length);
             }
 
             public void Dispose()
             {
-                Ipc.hiMQ_end(m.ptr, wrote, 0);
+                Ipc.hiMQ_end(m.ptr, 0, 0);
             }
         }
 
