@@ -181,6 +181,7 @@ namespace HDTLPanel
             if (WindowState == WindowState.Minimized)
             {
                 ShowInTaskbar = false;
+                Hide();
                 notifyIcon.Visible = true;
                 notifyIcon.ShowBalloonTip(1000, "HuiDesktop Light", "双击还原喵", ToolTipIcon.Info);
             }
