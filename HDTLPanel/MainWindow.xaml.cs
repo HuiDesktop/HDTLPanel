@@ -185,6 +185,11 @@ namespace HDTLPanel
                 notifyIcon.ShowBalloonTip(1000, "HuiDesktop Light", "双击还原喵", ToolTipIcon.Info);
             }
         }
+
+        private void ChangeAutoRun(object sender, RoutedEventArgs e)
+        {
+            context.IsAutoRun = !context.IsAutoRun;
+        }
     }
 
     class MainWindowDataContext : INotifyPropertyChanged
@@ -221,6 +226,16 @@ namespace HDTLPanel
             set
             {
                 isChanged = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsAutoRun
+        {
+            get => AutoRun.IsAutoRun(AppDomain.CurrentDomain.BaseDirectory + "HDTLPanel.exe", "HuiDesktop启动器与控制面板");
+            set
+            {
+                AutoRun.SetAutoRun(AppDomain.CurrentDomain.BaseDirectory + "HDTLPanel.exe", "HuiDesktop启动器与控制面板", value);
                 OnPropertyChanged();
             }
         }

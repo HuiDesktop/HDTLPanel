@@ -15,7 +15,7 @@
         <Label Content="当前主程序状态：" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <Label Content="{Binding Path=IsRunning, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=未运行/正在运行}" HorizontalAlignment="Left" Margin="121,10,0,0" VerticalAlignment="Top"/>
         <Button Content="{Binding Path=IsRunning, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=启动程序/结束程序}" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Width="90" Click="SwitchSubprogramRunningStatus" IsEnabled="{Binding Path=IsBusyClosing, Converter={StaticResource reverseBooleanConverter}}"/>
-        <Button Content="翻转模型" HorizontalAlignment="Left" Margin="110,40,0,0" VerticalAlignment="Top" Width="90" Click="FlipModel" IsEnabled="{Binding Path=IsRunning}" Visibility="Hidden"/>
+        <Button Content="{Binding Path=IsAutoRun, Converter={StaticResource ResourceKey=runningStatusConverter}, ConverterParameter=开启自启/关闭自启}" HorizontalAlignment="Left" Margin="110,40,0,0" VerticalAlignment="Top" Width="90" Click="ChangeAutoRun"/>
         <Grid x:Name="ConfigZoneGrid" Margin="0,64,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
