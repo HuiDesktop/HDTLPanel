@@ -24,8 +24,6 @@ namespace HDTLPanel
         private readonly int index;
         private readonly ManagedIpc ipc;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
         public string PromptText { get; set; }= "是否让老猫干苦力";
         public string HintText { get; set; }= "老猫有多努力谁又知道呢？";
         public bool changed = false;
