@@ -171,6 +171,14 @@ namespace HDTLPanel
                                 MainStackPanel.Children.Add(c);
                             }
                             break;
+                        case 4:
+                            {
+                                ButtonControl c = new(MainStackPanel.Children.Count + 1, manager!.txIpc);
+                                c.PromptText = reader.ReadString();
+                                c.HintText = reader.ReadString();
+                                MainStackPanel.Children.Add(c);
+                            }
+                            break;
                     }
                 }
             }
