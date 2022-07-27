@@ -66,7 +66,7 @@ namespace HDTLPanel
             else
             {
                 context.IsRunning = true;
-                manager = new ProcessManager("app/luajit.exe", System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"), "pet.lua", () => Dispatcher.Invoke(ReadIpc));
+                manager = new ProcessManager(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app/luajit.exe"), System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"), "main.lua", () => Dispatcher.Invoke(ReadIpc));
                 manager.Exited += (_, _) =>
                 {
                     System.Diagnostics.Debug.WriteLine(manager?.process.StandardError.ReadToEnd());
