@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,7 +18,10 @@ namespace HDTLPanel
         public CancellationTokenSource cancellationTokenSource = new();
         public Task updateTask;
         public event Action? OnReceiveIpcMessage;
+
         private bool disposedValue;
+
+        readonly private StreamWriter outWriter, errWriter;
 
         public ProcessManager(string exeName, string workingDirectory, string arguments, Action? onReceiveIpcMessage)
         {
@@ -27,15 +31,23 @@ namespace HDTLPanel
             {
                 WorkingDirectory = workingDirectory,
                 CreateNoWindow = true,
-                RedirectStandardInput = true,
+                RedirectStandardInput = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
+
+            outWriter = new StreamWriter(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out.log")));
+            errWriter = new StreamWriter(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "err.log")));
+
             process = Process.Start(processStartInfo) ?? throw new Exception("Failed to start process");
-            process.ErrorDataReceived += Process_ErrorDataReceived;
             process.Exited += Process_Exited;
             process.EnableRaisingEvents = true;
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.OutputDataReceived += (_, e) => outWriter.WriteLine(e.Data);
+            process.ErrorDataReceived += (_, e) => errWriter.WriteLine(e.Data);
+
             if (onReceiveIpcMessage is not null)
             {
                 OnReceiveIpcMessage += onReceiveIpcMessage;
@@ -61,11 +73,6 @@ namespace HDTLPanel
             });
         }
 
-        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            Debug.WriteLine(e.Data);
-        }
-
         public void TryCloseWindow()
         {
             process.CloseMainWindow();
@@ -78,6 +85,8 @@ namespace HDTLPanel
 
         private void Process_Exited(object? sender, EventArgs e)
         {
+            outWriter.Dispose();
+            errWriter.Dispose();
             Exited?.Invoke(this, e);
         }
 
