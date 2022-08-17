@@ -38,6 +38,14 @@ namespace HDTLPanel
         }
         public bool changed = false;
 
+        public BoolControl(int index, ManagedIpc.IpcReader reader):this(index)
+        {
+            PromptText = reader.ReadString();
+            HintText = reader.ReadString();
+            Choice = reader.ReadInt() != 0;
+            changed = false;
+        }
+
         public BoolControl(int index)
         {
             InitializeComponent();

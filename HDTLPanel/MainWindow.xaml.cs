@@ -71,7 +71,8 @@ namespace HDTLPanel
                 {
                     context.IsRunning = false;
                     context.IsChanged = false;
-                    Dispatcher.Invoke(() => {
+                    Dispatcher.Invoke(() =>
+                    {
                         MainStackPanel.Children.Clear();
                         if (WindowState == WindowState.Minimized)
                         {
@@ -132,6 +133,7 @@ namespace HDTLPanel
             {
                 while (reader.Next())
                 {
+                    object? c = null;
                     switch (reader.ReadInt())
                     {
                         case 0:
@@ -139,45 +141,25 @@ namespace HDTLPanel
                             context.IsChanged = false;
                             break;
                         case 1:
-                            {
-                                SingleLineTextControl c = new(MainStackPanel.Children.Count + 1);
-                                c.PromptText = reader.ReadString();
-                                c.HintText = reader.ReadString();
-                                if (reader.ReadInt() == 1)
-                                {
-                                    c.Type = SingleLineTextControl.SingleLineTextType.Integer;
-                                    c.InputContent = reader.ReadInt().ToString();
-                                }
-                                c.PropertyChanged += (_, _) => context.IsChanged = true;
-                                c.changed = false;
-                                MainStackPanel.Children.Add(c);
-                            }
+                            c = new SingleLineTextControl(MainStackPanel.Children.Count + 1, reader);
                             break;
                         case 2:
-                            {
-                                BoolControl c = new(MainStackPanel.Children.Count + 1);
-                                c.PromptText = reader.ReadString();
-                                c.HintText = reader.ReadString();
-                                c.Choice = reader.ReadInt() != 0;
-                                c.PropertyChanged += (_, _) => context.IsChanged = true;
-                                c.changed = false;
-                                MainStackPanel.Children.Add(c);
-                            }
+                            c = new BoolControl(MainStackPanel.Children.Count + 1, reader);
                             break;
                         case 3:
-                            {
-                                ReadonlyTextControl c = new(reader.ReadString());
-                                MainStackPanel.Children.Add(c);
-                            }
+                            c = new ReadonlyTextControl(reader.ReadString());
                             break;
                         case 4:
-                            {
-                                ButtonControl c = new(MainStackPanel.Children.Count + 1, manager!.txIpc);
-                                c.PromptText = reader.ReadString();
-                                c.HintText = reader.ReadString();
-                                MainStackPanel.Children.Add(c);
-                            }
+                            c = new ButtonControl(MainStackPanel.Children.Count + 1, manager!.txIpc, reader);
                             break;
+                    }
+                    if (c is ISaveableControl sc)
+                    {
+                        sc.PropertyChanged += (_, _) => context.IsChanged = true;
+                    }
+                    if (c is UIElement ec)
+                    {
+                        MainStackPanel.Children.Add(ec);
                     }
                 }
             }

@@ -56,6 +56,18 @@ namespace HDTLPanel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
+        public SingleLineTextControl(int index, ManagedIpc.IpcReader reader) : this(index)
+        {
+            PromptText = reader.ReadString();
+            HintText = reader.ReadString();
+            if (reader.ReadInt() == 1)
+            {
+                Type = SingleLineTextControl.SingleLineTextType.Integer;
+                InputContent = reader.ReadInt().ToString();
+            }
+            changed = false;
+        }
+
         public SingleLineTextControl(int index)
         {
             InitializeComponent();

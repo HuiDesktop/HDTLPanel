@@ -28,6 +28,12 @@ namespace HDTLPanel
         public string HintText { get; set; }= "老猫有多努力谁又知道呢？";
         public bool changed = false;
 
+        public ButtonControl(int index, ManagedIpc ipc, ManagedIpc.IpcReader reader) : this(index, ipc)
+        {
+            PromptText = reader.ReadString();
+            HintText = reader.ReadString();
+        }
+
         public ButtonControl(int index, ManagedIpc ipc)
         {
             InitializeComponent();
