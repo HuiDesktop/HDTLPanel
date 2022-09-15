@@ -1,13 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Forms;
 using System.Windows.Input;
+using NotifyIcon = System.Windows.Forms.NotifyIcon;
+using MouseButtons = System.Windows.Forms.MouseButtons;
+using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
 
 namespace HDTLPanel
 {
@@ -129,6 +134,8 @@ namespace HDTLPanel
         private void ReadIpc()
         {
             var reader = manager?.rxIpc.GetReader();
+            var tabStack = new List<TabControl>();
+            var tabItems = new List<StackPanel>();
             if (reader is not null)
             {
                 while (reader.Next())
@@ -152,6 +159,26 @@ namespace HDTLPanel
                         case 4:
                             c = new ButtonControl(MainStackPanel.Children.Count + 1, manager!.txIpc, reader);
                             break;
+                        case 5:
+                            tabStack.Add(new());
+                            c = tabStack.Last();
+                            break;
+                        case 6:
+                            if (tabItems.Count == tabStack.Count)
+                            {
+                                tabItems.RemoveAt(tabItems.Count - 1);
+                            }
+                            StackPanel grid = new();
+                            tabItems.Add(grid);
+                            tabStack.Last().Items.Add(new TabItem() { Header = reader.ReadString(), Content = grid });
+                            break;
+                        case 7:
+                            if (tabItems.Count == tabStack.Count)
+                            {
+                                tabItems.RemoveAt(tabItems.Count - 1);
+                            }
+                            tabStack.RemoveAt(tabStack.Count - 1);
+                            break;
                     }
                     if (c is ISaveableControl sc)
                     {
@@ -159,7 +186,14 @@ namespace HDTLPanel
                     }
                     if (c is UIElement ec)
                     {
-                        MainStackPanel.Children.Add(ec);
+                        if (tabItems.Count > 0)
+                        {
+                            tabItems.Last().Children.Add(ec);
+                        }
+                        else
+                        {
+                            MainStackPanel.Children.Add(ec);
+                        }
                     }
                 }
             }
