@@ -23,11 +23,11 @@ namespace HDTLPanel
 
         readonly private StreamWriter outWriter, errWriter;
 
-        public ProcessManager(string exeName, string workingDirectory, string arguments, Action? onReceiveIpcMessage)
+        public ProcessManager(string exeName, string workingDirectory, IEnumerable<string> arguments, Action? onReceiveIpcMessage)
         {
             txIpc = ManagedIpc.CreateInstance(16 * 1024);
             rxIpc = ManagedIpc.CreateInstance(16 * 1024);
-            ProcessStartInfo processStartInfo = new(exeName, arguments + " " + txIpc.GetName() + " " + rxIpc.GetName())
+            ProcessStartInfo processStartInfo = new(exeName)
             {
                 WorkingDirectory = workingDirectory,
                 CreateNoWindow = true,
@@ -36,6 +36,15 @@ namespace HDTLPanel
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
+
+            processStartInfo.ArgumentList.Add("main.lua");
+            processStartInfo.ArgumentList.Add(txIpc.GetName());
+            processStartInfo.ArgumentList.Add(rxIpc.GetName());
+
+            foreach (var argument in arguments)
+            {
+                processStartInfo.ArgumentList.Add(argument);
+            }
 
             outWriter = new StreamWriter(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out.log")));
             errWriter = new StreamWriter(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "err.log")));
