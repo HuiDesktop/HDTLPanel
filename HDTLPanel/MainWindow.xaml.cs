@@ -75,7 +75,7 @@ namespace HDTLPanel
                 {
                     args.RemoveAt(0);
                 }
-                
+
                 context.IsRunning = true;
                 manager = new ProcessManager(
                     System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app/luajit.exe"),
@@ -112,15 +112,33 @@ namespace HDTLPanel
             }
         }
 
+        private void SaveConfigSub(System.Collections.ICollection ss, ManagedIpc.IpcWriter w)
+        {
+            foreach (var i in ss)
+            {
+                if (i is TabControl t)
+                {
+                    foreach (var ii in t.Items)
+                    {
+                        if (((ii as TabItem)?.Content as StackPanel)?.Children is var x && x is not null)
+                        {
+                            SaveConfigSub(x, w);
+                        }
+                    }
+                }
+                else
+                {
+                    (i as ISaveableControl)?.Save(w);
+                }
+            }
+        }
+
         private void SaveConfig(object sender, RoutedEventArgs e)
         {
             if (manager is null) throw new NullReferenceException();
             using var w = manager.txIpc.BeginWrite();
             w.Write(2);
-            foreach (var i in MainStackPanel.Children)
-            {
-                (i as ISaveableControl)?.Save(w);
-            }
+            SaveConfigSub(MainStackPanel.Children, w);
             w.Write(0);
             context.IsChanged = false;
         }
@@ -146,28 +164,31 @@ namespace HDTLPanel
             var reader = manager?.rxIpc.GetReader();
             var tabStack = new List<TabControl>();
             var tabItems = new List<StackPanel>();
+            var index = 0;
             if (reader is not null)
             {
                 while (reader.Next())
                 {
+                    index++;
                     object? c = null;
                     switch (reader.ReadInt())
                     {
                         case 0:
+                            index--;
                             MainStackPanel.Children.Clear();
                             context.IsChanged = false;
                             break;
                         case 1:
-                            c = new SingleLineTextControl(MainStackPanel.Children.Count + 1, reader);
+                            c = new SingleLineTextControl(index, reader);
                             break;
                         case 2:
-                            c = new BoolControl(MainStackPanel.Children.Count + 1, reader);
+                            c = new BoolControl(index, reader);
                             break;
                         case 3:
                             c = new ReadonlyTextControl(reader.ReadString());
                             break;
                         case 4:
-                            c = new ButtonControl(MainStackPanel.Children.Count + 1, manager!.txIpc, reader);
+                            c = new ButtonControl(index, manager!.txIpc, reader);
                             break;
                         case 5:
                             tabStack.Add(new());
