@@ -1,13 +1,9 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HDTLPanel
 {
-    class AutoRun
+    internal class AutoRun
     {
         public static void SetAutoRun(string strAppPath, string strAppName, bool bIsAutoRun)
         {
@@ -35,7 +31,7 @@ namespace HDTLPanel
         public static bool IsAutoRun(string strAppPath, string strAppName)
         {
             using var run = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run\") ?? throw new Exception();
-            object? key = run.GetValue(strAppName);
+            var key = run.GetValue(strAppName);
             return strAppPath.Equals(key);
         }
     }
