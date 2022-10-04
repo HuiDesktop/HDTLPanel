@@ -29,6 +29,6 @@
                 <StackPanel x:Name="MainStackPanel"/>
             </ScrollViewer>
         </Grid>
-        <Label Content="Panel版本：v1.0" Margin="0,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="102" Foreground="#FFAAAAAA"/>
+        <Label Content="Panel版本：v1.1" Margin="0,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="102" Foreground="#FFAAAAAA"/>
     </Grid>
 </Window>
