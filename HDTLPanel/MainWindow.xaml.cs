@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -31,13 +32,12 @@ namespace HDTLPanel
             InitializeComponent();
             DataContext = context;
             notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
-            notifyIcon.MouseDoubleClick += (o, e) =>
+            notifyIcon.MouseClick += (o, e) =>
             {
                 if (e.Button == MouseButtons.Left)
                 {
                     Visibility = Visibility.Visible;
                     ShowInTaskbar = true;
-                    notifyIcon.Visible = false;
                     WindowState = WindowState.Normal;
                     Activate();
                 }
@@ -109,6 +109,8 @@ namespace HDTLPanel
                 }
                 manager.Dispose();
             }
+
+            notifyIcon.Visible = false;
         }
 
         private void SaveConfigSub(System.Collections.ICollection ss, ManagedIpc.IpcWriter w)
@@ -236,7 +238,12 @@ namespace HDTLPanel
                 ShowInTaskbar = false;
                 Hide();
                 notifyIcon.Visible = true;
-                notifyIcon.ShowBalloonTip(1000, "HuiDesktop Light", "双击还原喵", ToolTipIcon.Info);
+                var tag = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".notified");
+                if (!File.Exists(tag))
+                {
+                    File.Create(tag).Close();
+                    notifyIcon.ShowBalloonTip(1000, "HuiDesktop Light", "单击还原喵", ToolTipIcon.Info);
+                }
             }
         }
 
