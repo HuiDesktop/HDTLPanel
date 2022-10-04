@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +18,7 @@ namespace HDTLPanel
 
         private bool disposedValue;
 
-        readonly private StreamWriter outWriter, errWriter;
+        private readonly StreamWriter outWriter, errWriter;
 
         public ProcessManager(string exeName, string workingDirectory, IEnumerable<string> arguments, Action? onReceiveIpcMessage)
         {

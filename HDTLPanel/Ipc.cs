@@ -7,36 +7,36 @@ namespace HDTLPanel
     static class Ipc
     {
         [DllImport("huMessageQueue.dll")]
-        extern public static IntPtr hiMQ_createIPC(uint size);
+        public static extern IntPtr hiMQ_createIPC(uint size);
         [DllImport("huMessageQueue.dll")]
-        extern public static void hiMQ_close(IntPtr inst);
+        public static extern void hiMQ_close(IntPtr inst);
         [DllImport("huMessageQueue.dll")]
-        extern public static void hiMQ_closeIPC(IntPtr inst);
+        public static extern void hiMQ_closeIPC(IntPtr inst);
         [DllImport("huMessageQueue.dll", CharSet = CharSet.Ansi)]
-        extern public static string hiMQ_getIPCName(IntPtr name);
+        public static extern string hiMQ_getIPCName(IntPtr name);
         [DllImport("huMessageQueue.dll")]
-        extern public static uint hiMQ_get(IntPtr inst);
+        public static extern uint hiMQ_get(IntPtr inst);
         [DllImport("huMessageQueue.dll")]
-        extern public static uint hiMQ_next(IntPtr inst);
+        public static extern uint hiMQ_next(IntPtr inst);
         [DllImport("huMessageQueue.dll")]
-        extern public static void hiMQ_begin(IntPtr inst);
+        public static extern void hiMQ_begin(IntPtr inst);
         [DllImport("huMessageQueue.dll")]
-        extern public static void hiMQ_ensure(IntPtr inst, uint size);
+        public static extern void hiMQ_ensure(IntPtr inst, uint size);
         [DllImport("huMessageQueue.dll")]
-        extern public static void hiMQ_end(IntPtr inst, uint size, uint setEvent);
+        public static extern void hiMQ_end(IntPtr inst, uint size, uint setEvent);
     }
 
     public class ManagedIpc : IDisposable
     {
-        readonly IntPtr ptr;
+        private readonly IntPtr ptr;
         private bool disposedValue;
         public EventWaitHandle waitHandle;
 
         public class IpcReader
         {
-            readonly ManagedIpc m;
-            uint size = 0;
-            uint read = 0;
+            private readonly ManagedIpc m;
+            private uint size;
+            private uint read;
 
             public IpcReader(ManagedIpc m)
             {
@@ -46,15 +46,15 @@ namespace HDTLPanel
             public int ReadInt()
             {
                 if (read + 4 + 4 > size) throw new ArgumentOutOfRangeException();
-                int r = Marshal.ReadInt32(Marshal.ReadIntPtr(m.ptr + 24) + (int)read);
+                var r = Marshal.ReadInt32(Marshal.ReadIntPtr(m.ptr + 24) + (int)read);
                 read += 4;
                 return r;
             }
 
             public string ReadString()
             {
-                int len = ReadInt();
-                byte[] bytes = new byte[len];
+                var len = ReadInt();
+                var bytes = new byte[len];
                 Marshal.Copy(Marshal.ReadIntPtr(m.ptr + 24) + (int)read, bytes, 0, len);
                 read += (uint)len;
                 return System.Text.Encoding.UTF8.GetString(bytes);
