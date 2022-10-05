@@ -13,6 +13,7 @@ using System.Windows.Data;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using MouseButtons = System.Windows.Forms.MouseButtons;
 using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
+using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
 
 namespace HDTLPanel
 {
@@ -32,6 +33,9 @@ namespace HDTLPanel
             InitializeComponent();
             DataContext = context;
             notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
+            notifyIcon.ContextMenuStrip = new();
+            notifyIcon.ContextMenuStrip.Items.Add(new ToolStripMenuItem("退出"));
+            notifyIcon.ContextMenuStrip.Items[0].Click += (_, _) => Close();
             notifyIcon.MouseClick += (o, e) =>
             {
                 if (e.Button == MouseButtons.Left)
@@ -235,6 +239,7 @@ namespace HDTLPanel
         {
             if (WindowState == WindowState.Minimized)
             {
+                WindowState = WindowState.Normal;
                 ShowInTaskbar = false;
                 Hide();
                 notifyIcon.Visible = true;
