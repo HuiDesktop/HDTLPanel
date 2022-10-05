@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -9,7 +10,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using MouseButtons = System.Windows.Forms.MouseButtons;
 using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
@@ -23,32 +23,31 @@ namespace HDTLPanel
     {
         const string settingsPath = "settings.json";
 
-        readonly MainWindowDataContext context = new();
-        readonly NotifyIcon notifyIcon = new();
-        ProcessManager? manager;
+        private readonly MainWindowDataContext context = new();
+        private readonly NotifyIcon notifyIcon = new();
+        private ProcessManager? manager;
 
         public MainWindow()
         {
             InitializeComponent();
             DataContext = context;
             notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
-            notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler((o, e) =>
+            notifyIcon.MouseClick += (o, e) =>
             {
                 if (e.Button == MouseButtons.Left)
                 {
-                    Visibility = System.Windows.Visibility.Visible;
+                    Visibility = Visibility.Visible;
                     ShowInTaskbar = true;
-                    notifyIcon.Visible = false;
                     WindowState = WindowState.Normal;
                     Activate();
                 }
-            });
+            };
             SwitchSubprogramRunningStatus(null, new());
             WindowState = WindowState.Minimized;
-            Window_StateChanged(null, new());
+            Window_StateChanged(null, EventArgs.Empty);
         }
 
-        async private void SwitchSubprogramRunningStatus(object? sender, RoutedEventArgs e)
+        private async void SwitchSubprogramRunningStatus(object? sender, RoutedEventArgs e)
         {
             if (context.IsRunning)
             {
@@ -110,6 +109,8 @@ namespace HDTLPanel
                 }
                 manager.Dispose();
             }
+
+            notifyIcon.Visible = false;
         }
 
         private void SaveConfigSub(System.Collections.ICollection ss, ManagedIpc.IpcWriter w)
@@ -120,7 +121,7 @@ namespace HDTLPanel
                 {
                     foreach (var ii in t.Items)
                     {
-                        if (((ii as TabItem)?.Content as StackPanel)?.Children is var x && x is not null)
+                        if (((ii as TabItem)?.Content as StackPanel)?.Children is not null and var x)
                         {
                             SaveConfigSub(x, w);
                         }
@@ -237,7 +238,12 @@ namespace HDTLPanel
                 ShowInTaskbar = false;
                 Hide();
                 notifyIcon.Visible = true;
-                notifyIcon.ShowBalloonTip(1000, "HuiDesktop Light", "双击还原喵", ToolTipIcon.Info);
+                var tag = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".notified");
+                if (!File.Exists(tag))
+                {
+                    File.Create(tag).Close();
+                    notifyIcon.ShowBalloonTip(1000, "HuiDesktop Light", "单击还原喵", ToolTipIcon.Info);
+                }
             }
         }
 
@@ -249,9 +255,9 @@ namespace HDTLPanel
 
     class MainWindowDataContext : INotifyPropertyChanged
     {
-        private bool isRunning = false;
-        private bool isBusyClosing = false;
-        private bool isChanged = false;
+        private bool isRunning;
+        private bool isBusyClosing;
+        private bool isChanged;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
