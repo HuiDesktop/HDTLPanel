@@ -15,13 +15,16 @@ namespace HDTLPanel
         public CancellationTokenSource cancellationTokenSource = new();
         public Task updateTask;
         public event Action? OnReceiveIpcMessage;
+        public string? logPath;
 
         private bool disposedValue;
 
         private readonly StreamWriter outWriter, errWriter;
 
-        public ProcessManager(string exeName, string workingDirectory, IEnumerable<string> arguments, Action? onReceiveIpcMessage)
+        public ProcessManager(string exeName, string workingDirectory, IEnumerable<string> arguments, Action? onReceiveIpcMessage, string? logPath = null)
         {
+            this.logPath = logPath;
+
             txIpc = ManagedIpc.CreateInstance(16 * 1024);
             rxIpc = ManagedIpc.CreateInstance(16 * 1024);
             ProcessStartInfo processStartInfo = new(exeName)
@@ -43,8 +46,8 @@ namespace HDTLPanel
                 processStartInfo.ArgumentList.Add(argument);
             }
 
-            outWriter = new StreamWriter(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out.log")));
-            errWriter = new StreamWriter(File.OpenWrite(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "err.log")));
+            outWriter = new StreamWriter(File.OpenWrite(Path.Combine(logPath ?? AppDomain.CurrentDomain.BaseDirectory, "out.log")));
+            errWriter = new StreamWriter(File.OpenWrite(Path.Combine(logPath ?? AppDomain.CurrentDomain.BaseDirectory, "err.log")));
 
             process = Process.Start(processStartInfo) ?? throw new Exception("Failed to start process");
             process.Exited += Process_Exited;
@@ -60,7 +63,8 @@ namespace HDTLPanel
             }
 
             var token = cancellationTokenSource.Token;
-            updateTask = Task.Run(() => {
+            updateTask = Task.Run(() =>
+            {
                 while (!token.IsCancellationRequested)
                 {
                     try

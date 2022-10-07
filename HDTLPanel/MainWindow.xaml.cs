@@ -22,8 +22,6 @@ namespace HDTLPanel
     /// </summary>
     public partial class MainWindow : Window
     {
-        const string settingsPath = "settings.json";
-
         private readonly MainWindowDataContext context = new();
         private readonly NotifyIcon notifyIcon = new();
         private ProcessManager? manager;
@@ -79,12 +77,19 @@ namespace HDTLPanel
                     args.RemoveAt(0);
                 }
 
+                string? logPath = null;
+                foreach (var arg in args)
+                {
+                    if (arg.StartsWith("config=")) logPath = arg[7..];
+                }
+
                 context.IsRunning = true;
                 manager = new ProcessManager(
                     System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app/luajit.exe"),
                     System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app"),
                     args,
-                    () => Dispatcher.Invoke(ReadIpc));
+                    () => Dispatcher.Invoke(ReadIpc),
+                    logPath);
                 manager.Exited += (_, _) =>
                 {
                     context.IsRunning = false;
