@@ -30,6 +30,10 @@ namespace HDTLPanel
         {
             InitializeComponent();
             DataContext = context;
+
+            var args = new List<string>(Environment.GetCommandLineArgs()[1..]);
+            context.AutoRunEnabled = !args.Exists((s) => s == "--dist");
+
             notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
             notifyIcon.ContextMenuStrip = new();
             notifyIcon.ContextMenuStrip.Items.Add(new ToolStripMenuItem("退出"));
@@ -268,6 +272,7 @@ namespace HDTLPanel
         private bool isRunning;
         private bool isBusyClosing;
         private bool isChanged;
+        private bool autoRunEnabled;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -307,6 +312,16 @@ namespace HDTLPanel
             set
             {
                 AutoRun.SetAutoRun(AppDomain.CurrentDomain.BaseDirectory + "HDTLPanel.exe", "HuiDesktop启动器与控制面板", value);
+                OnPropertyChanged();
+            }
+        }
+
+        public bool AutoRunEnabled
+        {
+            get => autoRunEnabled;
+            set
+            {
+                autoRunEnabled = value;
                 OnPropertyChanged();
             }
         }
