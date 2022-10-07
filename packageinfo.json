@@ -1,0 +1,10 @@
+{
+  "runnable": true,
+  "dep": {
+      "model": { "type": "package" },
+      "audio": { "type": "package" },
+      "config": { "type": "config" }
+  },
+  "exec": "HDTLPanel.exe",
+  "args": ["--dist"]
+}
